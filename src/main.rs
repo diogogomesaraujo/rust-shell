@@ -1,7 +1,9 @@
-use std::{io::stdin, process::Command};
-use std::env::{self, current_dir};
 use chrono::prelude::*;
+use std::env::current_dir;
 use std::io::Write;
+use std::process::Child;
+use std::{io::stdin, process::Command};
+use std::process::Stdio;
 
 mod commands;
 
@@ -29,28 +31,66 @@ fn main() {
         let current_dir = current_dir().unwrap();
         let time = Local::now().format("%H:%M%P");
 
-        println!("[ {0} {1} ]: {2}", prefix, time, teal_text(current_dir.display().to_string()));
+        println!(
+            "[ {0} {1} ]: {2}",
+            prefix,
+            time,
+            teal_text(current_dir.display().to_string())
+        );
 
         print!("{}", teal_text(String::from("$ ")));
         std::io::stdout().flush().unwrap();
-        
+
         let mut input: String = String::new();
         stdin().read_line(&mut input).unwrap();
 
-        let mut parts = input.trim().split_whitespace();
-        let command = parts.next().unwrap();
-        let args = parts;
+        let mut commands = input.trim().split("|").peekable();
+        let mut previous_command = None;
 
-        match (command, &args) {
-            ("cd", _) => { commands::cd(args); }
-            ("clear", _) => { commands::clear(); },
+        while let Some(command) = commands.next() {
+            let mut parts = command.trim().split_whitespace();
+            let command = parts.next().unwrap();
+            let args = parts;
 
-            (_, _) => {
-                let child = Command::new(command).args(args).spawn();
+            match (command, &args) {
+                ("cd", _) => {
+                    commands::cd(args);
+                    previous_command = None;
+                },
+                ("clear", _) => {
+                    commands::clear();
+                    previous_command = None;
+                },
+                ("exit", _) => { return; }
+                (_, _) => {
+                    let stdin = previous_command.map_or(
+                        Stdio::inherit(),
+                        |output: Child| Stdio::from(output.stdout.unwrap())
+                    );
 
-                match child {
-                    Ok(mut child) => { child.wait().unwrap(); },
-                    Err(e) => { println!("{e}"); }
+                    let stdout = if commands.peek().is_some() {
+                        // there is another command piped behind this one
+                        // prepare to send output to the next command
+                        Stdio::piped()
+                    } else {
+                        // there are no more commands piped behind this one
+                        // send output to shell stdout
+                        Stdio::inherit()
+                    };
+
+                    let output = Command::new(command)
+                        .args(args)
+                        .stdin(stdin)
+                        .stdout(stdout)
+                        .spawn();
+
+                    match output {
+                        Ok(output) => { previous_command = Some(output); },
+                        Err(e) => {
+                            previous_command = None;
+                            eprintln!("{}", e);
+                        },
+                    };
                 }
             }
         }
