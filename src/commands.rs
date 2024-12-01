@@ -15,7 +15,7 @@ pub fn cd(args: SplitWhitespace<>) {
 pub fn clear() {
     match term_size::dimensions() {
         Some((_, h)) => {
-            for i in 0..h {
+            for _i in 0..h {
                 println!();
             }
         },

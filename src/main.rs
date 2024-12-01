@@ -1,5 +1,5 @@
 use std::{io::stdin, process::Command};
-use std::env::{self, current_dir};
+use std::env::current_dir;
 use chrono::prelude::*;
 use std::io::Write;
 
