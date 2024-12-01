@@ -1,4 +1,4 @@
-use std::io::{stdin, stdout, Read, Write};
+use std::io::{stdout, Write};
 
 use console::Term;
 
@@ -10,11 +10,14 @@ pub fn read_instance() -> String {
         match term.read_key() {
             Ok(key) => match key {
                 console::Key::ArrowLeft => {
-                    term.write_all(b"\x1b[1D");
+                    if cursor_position != 0 {
+                        let _result = term.write_all(b"\x1b[1D");
+                        cursor_position -= 1;
+                    }
                 }
                 console::Key::ArrowRight => {
-                    if cursor_position + 1 < input.len() {
-                        term.write_all(b"\x1b[1C");
+                    if cursor_position < input.len() {
+                        let _result = term.write_all(b"\x1b[1C");
                         cursor_position += 1;
                     }
                 }
@@ -23,13 +26,24 @@ pub fn read_instance() -> String {
                     return input;
                 }
                 console::Key::Backspace => {
-                    if !input.is_empty() {
+                    if !input.is_empty() && cursor_position > 0 {
+                        let moves = input.len() - cursor_position;
+                        if moves > 0 {
+                            term.write_all(format!("\x1b[{}C", moves).as_bytes())
+                                .unwrap();
+                        }
+
                         input.pop();
                         term.clear_chars(1).unwrap();
+                        cursor_position = input.len();
                     }
                 }
                 console::Key::Char(c) => {
-                    input.push(c);
+                    input.insert(cursor_position, c);
+                    cursor_position += 1;
+                    if cursor_position != input.len() {
+                        input.remove(cursor_position);
+                    }
                     print!("{c}");
                     stdout().flush().unwrap();
                 }
