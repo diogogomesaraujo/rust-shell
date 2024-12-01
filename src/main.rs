@@ -1,7 +1,7 @@
-use std::{io::stdin, process::Command};
-use std::env::current_dir;
 use chrono::prelude::*;
-use std::io::Write;
+use std::env::current_dir;
+use std::io::{self, stdout, Write};
+use std::{io::stdin, process::Command};
 
 mod commands;
 
@@ -29,28 +29,48 @@ fn main() {
         let current_dir = current_dir().unwrap();
         let time = Local::now().format("%H:%M%P");
 
-        println!("[ {0} {1} ]: {2}", prefix, time, teal_text(current_dir.display().to_string()));
+        println!(
+            "[ {0} {1} ]: {2}",
+            prefix,
+            time,
+            teal_text(current_dir.display().to_string())
+        );
 
         print!("{}", teal_text(String::from("$ ")));
         std::io::stdout().flush().unwrap();
-        
+
         let mut input: String = String::new();
         stdin().read_line(&mut input).unwrap();
 
         let mut parts = input.trim().split_whitespace();
-        let command = parts.next().unwrap();
+        let command = match parts.next() {
+            Some(command) => command,
+            None => {
+                continue;
+            }
+        };
         let args = parts;
 
         match (command, &args) {
-            ("cd", _) => { commands::cd(args); }
-            ("clear", _) => { commands::clear(); },
-            ("cat", _) => { commands::cat(args); }
+            ("cd", _) => {
+                commands::cd(args);
+            }
+            ("clear", _) => {
+                commands::clear();
+            }
+            ("cat", _) => {
+                commands::cat(args);
+            }
             (_, _) => {
                 let child = Command::new(command).args(args).spawn();
 
                 match child {
-                    Ok(mut child) => { child.wait().unwrap(); },
-                    Err(e) => { println!("{e}"); }
+                    Ok(mut child) => {
+                        child.wait().unwrap();
+                    }
+                    Err(e) => {
+                        println!("{e}");
+                    }
                 }
             }
         }

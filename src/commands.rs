@@ -1,9 +1,9 @@
 // SHELL COMMANDS
 
-use std::{env, fs::File, path::Path, str::SplitWhitespace};
 use std::io::{stdin, BufReader, Read, Write};
+use std::{env, fs::File, path::Path, str::SplitWhitespace};
 
-pub fn cd(args: SplitWhitespace<>) {
+pub fn cd(args: SplitWhitespace) {
     let new_dir = args.peekable().peek().map_or("/", |x| *x);
     let root = Path::new(new_dir);
 
@@ -18,21 +18,21 @@ pub fn clear() {
             for _i in 0..h {
                 println!();
             }
-        },
+        }
         None => {
             println!("Unable to get the window size!");
         }
     }
 }
 
-pub fn cat(args: SplitWhitespace<>) {
+pub fn cat(args: SplitWhitespace) {
     for arg in args {
         match arg {
             arg if arg.starts_with(">") => {
                 let path = arg.trim_matches('>');
                 let mut file = match File::create(path) {
                     Ok(file) => file,
-                    Err(e) => { 
+                    Err(e) => {
                         eprintln!("{e}");
                         return;
                     }
@@ -42,8 +42,12 @@ pub fn cat(args: SplitWhitespace<>) {
                 stdin().read_line(&mut input).unwrap();
 
                 match file.write_all(input.as_bytes()) {
-                    Ok(_) => { return; },
-                    Err(e) => { eprintln!("{e}"); }
+                    Ok(_) => {
+                        return;
+                    }
+                    Err(e) => {
+                        eprintln!("{e}");
+                    }
                 };
             }
             _ => {
