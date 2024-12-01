@@ -1,6 +1,5 @@
-use std::io::{stdout, Write};
-
 use console::Term;
+use std::io::{stdout, Write};
 
 pub fn read_instance() -> String {
     let mut input = String::new();
@@ -26,7 +25,7 @@ pub fn read_instance() -> String {
                     return input;
                 }
                 console::Key::Backspace => {
-                    if !input.is_empty() && cursor_position > 0 {
+                    if !input.is_empty() {
                         let moves = input.len() - cursor_position;
                         if moves > 0 {
                             term.write_all(format!("\x1b[{}C", moves).as_bytes())

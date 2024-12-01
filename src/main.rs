@@ -1,7 +1,7 @@
 use chrono::prelude::*;
 use std::env::current_dir;
 use std::io::Write;
-use std::{io::stdin, process::Command};
+use std::process::Command;
 
 mod color;
 mod commands;
@@ -24,9 +24,6 @@ fn main() {
 
         print!("{}", color::teal_text(String::from("$ ")));
         std::io::stdout().flush().unwrap();
-
-        //let mut input: String = String::new();
-        //stdin().read_line(&mut input).unwrap();
 
         let input = io::read_instance();
 
