@@ -44,7 +44,7 @@ fn main() {
         match (command, &args) {
             ("cd", _) => { commands::cd(args); }
             ("clear", _) => { commands::clear(); },
-
+            ("cat", _) => { commands::cat(args); }
             (_, _) => {
                 let child = Command::new(command).args(args).spawn();
 

@@ -1,6 +1,7 @@
 // SHELL COMMANDS
 
-use std::{env, path::Path, str::SplitWhitespace};
+use std::{env, fs::File, path::Path, str::SplitWhitespace};
+use std::io::{stdin, BufReader, Read, Write};
 
 pub fn cd(args: SplitWhitespace<>) {
     let new_dir = args.peekable().peek().map_or("/", |x| *x);
@@ -20,6 +21,45 @@ pub fn clear() {
         },
         None => {
             println!("Unable to get the window size!");
+        }
+    }
+}
+
+pub fn cat(args: SplitWhitespace<>) {
+    for arg in args {
+        match arg {
+            arg if arg.starts_with(">") => {
+                let path = arg.trim_matches('>');
+                let mut file = match File::create(path) {
+                    Ok(file) => file,
+                    Err(e) => { 
+                        eprintln!("{e}");
+                        return;
+                    }
+                };
+
+                let mut input = String::new();
+                stdin().read_line(&mut input).unwrap();
+
+                match file.write_all(input.as_bytes()) {
+                    Ok(_) => { return; },
+                    Err(e) => { eprintln!("{e}"); }
+                };
+            }
+            _ => {
+                let file = match File::open(arg) {
+                    Ok(file) => file,
+                    Err(_) => {
+                        eprintln!("cat: {}: No such file or directory", arg);
+                        return;
+                    }
+                };
+                let mut buf_reader = BufReader::new(file);
+                let mut contents: String = String::new();
+                buf_reader.read_to_string(&mut contents).unwrap();
+
+                println!("{contents}");
+            }
         }
     }
 }
