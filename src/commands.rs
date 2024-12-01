@@ -25,4 +25,5 @@ pub fn clear() {
 }
 
 pub fn cat(args: SplitWhitespace<>) {
+    
 }

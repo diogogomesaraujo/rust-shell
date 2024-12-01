@@ -25,7 +25,7 @@ fn teal_text(s: String) -> String {
 
 fn main() {
     commands::clear();
-    let prefix: String = red_text(String::from("kitten"));
+    let prefix: String = red_text(String::from("diogo"));
 
     loop {
         let current_dir = current_dir().unwrap();
