@@ -1,5 +1,6 @@
 // SHELL COMMANDS
 
+use std::env::current_dir;
 use std::io::{stdin, BufReader, Read, Write};
 use std::{env, fs::File, path::Path, str::SplitWhitespace};
 
@@ -64,6 +65,17 @@ pub fn cat(args: SplitWhitespace) {
 
                 println!("{contents}");
             }
+        }
+    }
+}
+
+pub fn pwd() {
+    match current_dir() {
+        Ok(dir) => {
+            println!("{}", dir.display());
+        }
+        Err(e) => {
+            eprintln!("{e}");
         }
     }
 }

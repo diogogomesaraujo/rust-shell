@@ -1,29 +1,15 @@
 use chrono::prelude::*;
 use std::env::current_dir;
-use std::io::{self, stdout, Write};
+use std::io::Write;
 use std::{io::stdin, process::Command};
 
+mod color;
 mod commands;
-
-fn red_text(s: String) -> String {
-    let mut aux: String = String::from("\u{001b}[31m");
-    aux.push_str(&s);
-    aux.push_str("\u{001b}[0m");
-
-    aux
-}
-
-fn teal_text(s: String) -> String {
-    let mut aux: String = String::from("\u{001b}[36m");
-    aux.push_str(&s);
-    aux.push_str("\u{001b}[0m");
-
-    aux
-}
+mod io;
 
 fn main() {
     commands::clear();
-    let prefix: String = red_text(String::from("diogo"));
+    let prefix: String = color::red_text(String::from("diogo"));
 
     loop {
         let current_dir = current_dir().unwrap();
@@ -33,14 +19,16 @@ fn main() {
             "[ {0} {1} ]: {2}",
             prefix,
             time,
-            teal_text(current_dir.display().to_string())
+            color::teal_text(current_dir.display().to_string())
         );
 
-        print!("{}", teal_text(String::from("$ ")));
+        print!("{}", color::teal_text(String::from("$ ")));
         std::io::stdout().flush().unwrap();
 
-        let mut input: String = String::new();
-        stdin().read_line(&mut input).unwrap();
+        //let mut input: String = String::new();
+        //stdin().read_line(&mut input).unwrap();
+
+        let input = io::read_instance();
 
         let mut parts = input.trim().split_whitespace();
         let command = match parts.next() {
@@ -60,6 +48,9 @@ fn main() {
             }
             ("cat", _) => {
                 commands::cat(args);
+            }
+            ("pwd", _) => {
+                commands::pwd();
             }
             (_, _) => {
                 let child = Command::new(command).args(args).spawn();
