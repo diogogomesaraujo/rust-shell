@@ -5,7 +5,7 @@ use std::process::Command;
 
 mod color;
 mod commands;
-mod io;
+mod custom_io;
 
 fn main() {
     commands::clear();
@@ -25,7 +25,7 @@ fn main() {
         print!("{}", color::teal_text(String::from("$ ")));
         std::io::stdout().flush().unwrap();
 
-        let input = io::read_instance();
+        let input = custom_io::read_instance();
 
         let mut parts = input.trim().split_whitespace();
         let command = match parts.next() {
