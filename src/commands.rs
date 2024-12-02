@@ -133,8 +133,29 @@ pub fn grep(args: SplitWhitespace) {
 
     match flag.as_str() {
         "-i" | "--ignore-case" => {}
-        "-v" | "--invert-match" => {}
-        "-n" | "--line-number" => {}
+        "-v" | "--invert-match" => {
+            let lines = contents.split("\n");
+            let aux = word.clone();
+            for line in lines {
+                if !line.contains(aux.as_str()) {
+                    output.push(String::from(line));
+                }
+            }
+        }
+        "-n" | "--line-number" => {
+            let lines = contents.split("\n");
+            let aux = word.clone();
+            let mut i = 1;
+            for line in lines {
+                if line.contains(aux.as_str()) {
+                    let mut new_line = highlight_word(&word, String::from(line));
+                    let line_number = color::teal_text(format!("{i}: "));
+                    i += 1;
+                    new_line = format!("{}{}", line_number, new_line);
+                    output.push(new_line);
+                }
+            }
+        }
         "-w" => {}
         "-c" => {}
         _ => {
