@@ -4,6 +4,8 @@ use std::env::current_dir;
 use std::io::{stdin, BufReader, Read, Write};
 use std::{env, fs, fs::File, path::Path, str::SplitWhitespace};
 
+use crate::color;
+
 pub fn cd(args: SplitWhitespace) {
     let new_dir = args.peekable().peek().map_or("/", |x| *x);
     let root = Path::new(new_dir);
@@ -89,5 +91,65 @@ pub fn mkdir(args: SplitWhitespace) {
             }
         };
         break;
+    }
+}
+
+pub fn grep(args: SplitWhitespace) {
+    let mut path: String = String::new();
+    let mut word: String = String::new();
+    let mut flag: String = String::new();
+    let mut output: Vec<String> = Vec::new();
+    for arg in args {
+        match arg {
+            "-i" | "-v" | "-n" | "-w" | "-c" | "--ignore-case" | "--invert-match"
+            | "--line-number" => {
+                flag = String::from(arg);
+            }
+            _ if arg.starts_with('"') => {
+                word = String::from(arg);
+                word = String::from(word.trim_matches('"'));
+            }
+            _ => {
+                path = String::from(arg);
+            }
+        }
+    }
+
+    let file = match File::open(path) {
+        Ok(file) => file,
+        Err(e) => {
+            eprintln!("{e}");
+            return;
+        }
+    };
+    let mut buf_reader = BufReader::new(file);
+    let mut contents: String = String::new();
+    buf_reader.read_to_string(&mut contents).unwrap();
+
+    let highlight_word = |word: &String, line: String| {
+        let new_line = line.replace(word, &color::red_text(word.clone()));
+        new_line
+    };
+
+    match flag.as_str() {
+        "-i" | "--ignore-case" => {}
+        "-v" | "--invert-match" => {}
+        "-n" | "--line-number" => {}
+        "-w" => {}
+        "-c" => {}
+        _ => {
+            let lines = contents.split("\n");
+            let aux = word.clone();
+            for line in lines {
+                if line.contains(aux.as_str()) {
+                    let new_line = highlight_word(&word, String::from(line));
+                    output.push(new_line);
+                }
+            }
+        }
+    }
+
+    for line in output {
+        println!("{line}");
     }
 }

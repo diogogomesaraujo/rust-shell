@@ -52,6 +52,9 @@ fn main() {
             ("mkdir", _) => {
                 commands::mkdir(args);
             }
+            ("grep", _) => {
+                commands::grep(args);
+            }
             (_, _) => {
                 let child = Command::new(command).args(args).spawn();
 
