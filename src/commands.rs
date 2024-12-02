@@ -2,7 +2,7 @@
 
 use std::env::current_dir;
 use std::io::{stdin, BufReader, Read, Write};
-use std::{env, fs::File, path::Path, str::SplitWhitespace};
+use std::{env, fs, fs::File, path::Path, str::SplitWhitespace};
 
 pub fn cd(args: SplitWhitespace) {
     let new_dir = args.peekable().peek().map_or("/", |x| *x);
@@ -77,5 +77,17 @@ pub fn pwd() {
         Err(e) => {
             eprintln!("{e}");
         }
+    }
+}
+
+pub fn mkdir(args: SplitWhitespace) {
+    for arg in args {
+        match fs::create_dir(arg) {
+            Ok(create) => create,
+            Err(e) => {
+                eprintln!("{e}");
+            }
+        };
+        break;
     }
 }

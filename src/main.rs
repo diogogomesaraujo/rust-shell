@@ -49,6 +49,9 @@ fn main() {
             ("pwd", _) => {
                 commands::pwd();
             }
+            ("mkdir", _) => {
+                commands::mkdir(args);
+            }
             (_, _) => {
                 let child = Command::new(command).args(args).spawn();
 
