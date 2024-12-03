@@ -1,10 +1,9 @@
 // SHELL COMMANDS
 
+use crate::color;
 use std::env::current_dir;
 use std::io::{stdin, BufReader, Read, Write};
 use std::{env, fs, fs::File, path::Path, str::SplitWhitespace};
-
-use crate::color;
 
 pub fn cd(args: SplitWhitespace) {
     let new_dir = args.peekable().peek().map_or("/", |x| *x);
@@ -99,6 +98,7 @@ pub fn grep(args: SplitWhitespace) {
     let mut word: String = String::new();
     let mut flag: String = String::new();
     let mut output: Vec<String> = Vec::new();
+
     for arg in args {
         match arg {
             "-i" | "-v" | "-n" | "-w" | "-c" | "--ignore-case" | "--invert-match"
@@ -108,6 +108,10 @@ pub fn grep(args: SplitWhitespace) {
             _ if arg.starts_with('"') => {
                 word = String::from(arg);
                 word = String::from(word.trim_matches('"'));
+            }
+            _ if arg.starts_with('-') => {
+                eprintln!("Invalid flag. The valid ones are -i, -v,-n, -w, or -c.");
+                return;
             }
             _ => {
                 path = String::from(arg);
@@ -132,7 +136,10 @@ pub fn grep(args: SplitWhitespace) {
     };
 
     match flag.as_str() {
-        "-i" | "--ignore-case" => {}
+        "-i" | "--ignore-case" => {
+            println!("Not yet implemented.");
+            return;
+        }
         "-v" | "--invert-match" => {
             let lines = contents.split("\n");
             let aux = word.clone();
@@ -150,14 +157,37 @@ pub fn grep(args: SplitWhitespace) {
                 if line.contains(aux.as_str()) {
                     let mut new_line = highlight_word(&word, String::from(line));
                     let line_number = color::teal_text(format!("{i}: "));
-                    i += 1;
                     new_line = format!("{}{}", line_number, new_line);
                     output.push(new_line);
                 }
+                i += 1;
             }
         }
-        "-w" => {}
-        "-c" => {}
+        "-w" => {
+            let lines = contents.split("\n");
+            let aux = word.clone();
+            for line in lines {
+                for w in line.split_whitespace() {
+                    if line.contains(aux.as_str()) && word == w {
+                        let new_line = highlight_word(&word, String::from(line));
+                        output.push(new_line);
+                    }
+                }
+            }
+        }
+        "-c" => {
+            let mut count = 0;
+            let lines = contents.split("\n");
+            let aux = word.clone();
+            for line in lines {
+                if line.contains(aux.as_str()) {
+                    count += 1;
+                }
+            }
+
+            println!("{count}");
+            return;
+        }
         _ => {
             let lines = contents.split("\n");
             let aux = word.clone();

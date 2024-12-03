@@ -1,7 +1,7 @@
 use chrono::prelude::*;
 use std::env::current_dir;
 use std::io::Write;
-use std::process::Command;
+use std::process::{exit, Command};
 
 mod color;
 mod commands;
@@ -10,6 +10,7 @@ mod custom_io;
 fn main() {
     commands::clear();
     let prefix: String = color::red_text(String::from("diogo"));
+    let mut commands: Vec<String> = Vec::new();
 
     loop {
         let current_dir = current_dir().unwrap();
@@ -25,7 +26,7 @@ fn main() {
         print!("{}", color::teal_text(String::from("$ ")));
         std::io::stdout().flush().unwrap();
 
-        let input = custom_io::read_instance();
+        let input = custom_io::read_instance(&mut commands);
 
         let mut parts = input.trim().split_whitespace();
         let command = match parts.next() {
@@ -55,6 +56,9 @@ fn main() {
             ("grep", _) => {
                 commands::grep(args);
             }
+            ("exit", _) => {
+                exit(0);
+            }
             (_, _) => {
                 let child = Command::new(command).args(args).spawn();
 
@@ -68,5 +72,7 @@ fn main() {
                 }
             }
         }
+
+        println!("{:?}", commands);
     }
 }

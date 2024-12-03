@@ -1,7 +1,11 @@
 use console::Term;
-use std::io::{stdout, Write};
+use std::{
+    borrow::BorrowMut,
+    collections::VecDeque,
+    io::{stdout, Write},
+};
 
-pub fn read_instance() -> String {
+pub fn read_instance(commands: &mut Vec<String>) -> String {
     let mut input = String::new();
     let mut cursor_position: usize = 0;
     loop {
@@ -22,6 +26,11 @@ pub fn read_instance() -> String {
                 }
                 console::Key::Enter => {
                     println!();
+                    if let Some(last) = commands.last() {
+                        if last != "" {
+                            commands.push(String::new());
+                        }
+                    }
                     return input;
                 }
                 console::Key::Backspace => {
@@ -30,6 +39,13 @@ pub fn read_instance() -> String {
                         if moves > 0 {
                             term.write_all(format!("\x1b[{}C", moves).as_bytes())
                                 .unwrap();
+                        }
+
+                        match commands.last_mut() {
+                            Some(last) => {
+                                last.pop();
+                            }
+                            None => {}
                         }
 
                         input.pop();
@@ -43,8 +59,18 @@ pub fn read_instance() -> String {
                     if cursor_position != input.len() {
                         input.remove(cursor_position);
                     }
-                    print!("{c}");
+                    print!("{}", &c);
                     stdout().flush().unwrap();
+
+                    if commands.is_empty() {
+                        commands.push(String::new());
+                    }
+                    if let Some(last) = commands.last_mut() {
+                        last.push(c);
+                    }
+                }
+                console::Key::CtrlC => {
+                    return String::from("");
                 }
                 _ => {
                     continue;
