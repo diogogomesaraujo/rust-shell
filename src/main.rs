@@ -72,7 +72,5 @@ fn main() {
                 }
             }
         }
-
-        println!("{:?}", commands);
     }
 }
