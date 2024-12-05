@@ -5,9 +5,12 @@ use std::env::current_dir;
 use std::io::{stdin, BufReader, Read, Write};
 use std::{env, fs, fs::File, path::Path, str::SplitWhitespace};
 
-pub fn cd(args: SplitWhitespace) {
-    let new_dir = args.peekable().peek().map_or("/", |x| *x);
-    let root = Path::new(new_dir);
+pub fn cd(args: Vec<String>) {
+    if args.len() != 1 {
+        eprintln!("Invalid number of arguments");
+        return;
+    }
+    let root = Path::new(&args[0]);
 
     if let Err(e) = env::set_current_dir(&root) {
         eprintln!("{}", e);
@@ -27,7 +30,7 @@ pub fn clear() {
     }
 }
 
-pub fn cat(args: SplitWhitespace) {
+pub fn cat(args: Vec<String>) {
     for arg in args {
         match arg {
             arg if arg.starts_with(">") => {
@@ -41,7 +44,13 @@ pub fn cat(args: SplitWhitespace) {
                 };
 
                 let mut input = String::new();
-                stdin().read_line(&mut input).unwrap();
+                match stdin().read_line(&mut input) {
+                    Ok(ok) => ok,
+                    Err(e) => {
+                        eprintln!("{e}");
+                        return;
+                    }
+                };
 
                 match file.write_all(input.as_bytes()) {
                     Ok(_) => {
@@ -53,7 +62,7 @@ pub fn cat(args: SplitWhitespace) {
                 };
             }
             _ => {
-                let file = match File::open(arg) {
+                let file = match File::open(&arg) {
                     Ok(file) => file,
                     Err(_) => {
                         eprintln!("cat: {}: No such file or directory", arg);
@@ -62,7 +71,13 @@ pub fn cat(args: SplitWhitespace) {
                 };
                 let mut buf_reader = BufReader::new(file);
                 let mut contents: String = String::new();
-                buf_reader.read_to_string(&mut contents).unwrap();
+                match buf_reader.read_to_string(&mut contents) {
+                    Ok(ok) => ok,
+                    Err(e) => {
+                        eprintln!("{e}");
+                        return;
+                    }
+                };
 
                 println!("{contents}");
             }
@@ -81,7 +96,7 @@ pub fn pwd() {
     }
 }
 
-pub fn mkdir(args: SplitWhitespace) {
+pub fn mkdir(args: Vec<String>) {
     for arg in args {
         match fs::create_dir(arg) {
             Ok(create) => create,
@@ -93,14 +108,14 @@ pub fn mkdir(args: SplitWhitespace) {
     }
 }
 
-pub fn grep(args: SplitWhitespace) {
+pub fn grep(args: Vec<String>) {
     let mut path: String = String::new();
     let mut word: String = String::new();
     let mut flag: String = String::new();
     let mut output: Vec<String> = Vec::new();
 
     for arg in args {
-        match arg {
+        match arg.as_str() {
             "-i" | "-v" | "-n" | "-w" | "-c" | "--ignore-case" | "--invert-match"
             | "--line-number" => {
                 flag = String::from(arg);
@@ -128,7 +143,13 @@ pub fn grep(args: SplitWhitespace) {
     };
     let mut buf_reader = BufReader::new(file);
     let mut contents: String = String::new();
-    buf_reader.read_to_string(&mut contents).unwrap();
+    match buf_reader.read_to_string(&mut contents) {
+        Ok(ok) => ok,
+        Err(e) => {
+            eprintln!("{e}");
+            return;
+        }
+    };
 
     let highlight_word = |word: &String, line: String| {
         let new_line = line.replace(word, &color::red_text(word.clone()));
@@ -203,4 +224,72 @@ pub fn grep(args: SplitWhitespace) {
     for line in output {
         println!("{line}");
     }
+}
+
+pub fn used(args: Vec<String>) {
+    if args.len() != 1 {
+        eprintln!("Invalid number of arguments");
+        return;
+    }
+    let path = &args[0];
+    match File::open(path) {
+        Ok(file) => {
+            let mut buf_reader = BufReader::new(file);
+            let mut contents: String = String::new();
+            match buf_reader.read_to_string(&mut contents) {
+                Ok(ok) => ok,
+                Err(e) => {
+                    eprintln!("{}", e);
+                    return;
+                }
+            };
+            let size_of_file = contents.len();
+
+            println!(
+                "Size of file is {} bytes ({} MB)",
+                size_of_file,
+                size_of_file as f64 / (1024 * 1024) as f64
+            );
+        }
+        Err(_) => {}
+    }
+}
+
+pub fn init() {
+    let file = match File::open("hi_there") {
+        Ok(file) => file,
+        Err(_) => {
+            return;
+        }
+    };
+
+    let mut buf_reader = BufReader::new(file);
+    let mut contents: String = String::new();
+    match buf_reader.read_to_string(&mut contents) {
+        Ok(ok) => ok,
+        Err(e) => {
+            eprintln!("{}", e);
+            return;
+        }
+    };
+
+    println!("{}", contents);
+    let size_of_contents = contents.split('\n').count();
+    match term_size::dimensions() {
+        Some((_, h)) => {
+            if size_of_contents + 2 < h {
+                for _i in 0..(h - size_of_contents - 2) {
+                    println!();
+                }
+            }
+        }
+        None => {}
+    };
+}
+
+pub fn hashkitten(args: Vec<String>) {
+    let mut args = args;
+    args.push(String::from("hashkitten"));
+    args.reverse();
+    hashkitten::run(args);
 }

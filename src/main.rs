@@ -9,6 +9,7 @@ mod custom_io;
 
 fn main() {
     commands::clear();
+    commands::init();
     let prefix: String = color::red_text(String::from("diogo"));
     let mut commands: Vec<String> = Vec::new();
 
@@ -36,6 +37,7 @@ fn main() {
             }
         };
         let args = parts;
+        let args: Vec<String> = args.map(|s| s.to_string()).collect();
 
         match (command, &args) {
             ("cd", _) => {
@@ -56,6 +58,15 @@ fn main() {
             ("grep", _) => {
                 commands::grep(args);
             }
+            ("used", _) => {
+                commands::used(args);
+            }
+            ("hashkitten", _) => {
+                commands::hashkitten(args);
+            }
+            ("hi", _) => {
+                commands::init();
+            }
             ("exit", _) => {
                 exit(0);
             }
@@ -72,5 +83,7 @@ fn main() {
                 }
             }
         }
+
+        //println!("{:?}", commands);
     }
 }

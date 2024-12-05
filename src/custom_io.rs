@@ -69,7 +69,6 @@ pub fn read_instance(commands: &mut Vec<String>) -> String {
                         }
                     }
                     return input;
-                    last_pressed = console::Key::Enter;
                 }
                 console::Key::Backspace => {
                     if !input.is_empty() {
