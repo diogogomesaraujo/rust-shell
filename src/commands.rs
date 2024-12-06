@@ -2,35 +2,64 @@
 
 use crate::color;
 use std::env::current_dir;
-use std::io::{stdin, BufReader, Read, Write};
-use std::{env, fs, fs::File, path::Path, str::SplitWhitespace};
+use std::io::{stdin, stdout, BufReader, Read, Write};
+use std::{env, fs, fs::File, path::Path};
 
-pub fn cd(args: Vec<String>) {
+pub fn ls(args: Vec<String>) -> Option<String> {
+    let paths = match fs::read_dir("./") {
+        Ok(paths) => paths,
+        Err(e) => {
+            eprintln!("{e}");
+            return None;
+        }
+    };
+
+    let mut result = String::new();
+
+    for path in paths {
+        if let Some(path) = path.unwrap().path().as_os_str().to_str() {
+            print!("{}  ", &path[2..]);
+            stdout().flush().unwrap();
+            result.push_str(&path[2..]);
+            result.push_str(" ");
+        }
+    }
+    println!();
+    return Some(result);
+}
+
+pub fn cd(args: Vec<String>) -> Option<String> {
     if args.len() != 1 {
         eprintln!("Invalid number of arguments");
-        return;
+        return None;
     }
     let root = Path::new(&args[0]);
 
     if let Err(e) = env::set_current_dir(&root) {
-        eprintln!("{}", e);
+        eprintln!("{}", &e);
+        return None;
     }
+    None
 }
 
-pub fn clear() {
+pub fn clear() -> Option<String> {
     match term_size::dimensions() {
         Some((_, h)) => {
             for _i in 0..h {
                 println!();
             }
+
+            return None;
         }
         None => {
             println!("Unable to get the window size!");
+            return None;
         }
     }
 }
 
-pub fn cat(args: Vec<String>) {
+pub fn cat(args: Vec<String>) -> Option<String> {
+    let mut result: String = String::new();
     for arg in args {
         match arg {
             arg if arg.starts_with(">") => {
@@ -38,8 +67,8 @@ pub fn cat(args: Vec<String>) {
                 let mut file = match File::create(path) {
                     Ok(file) => file,
                     Err(e) => {
-                        eprintln!("{e}");
-                        return;
+                        eprintln!("{}", e);
+                        continue;
                     }
                 };
 
@@ -48,16 +77,17 @@ pub fn cat(args: Vec<String>) {
                     Ok(ok) => ok,
                     Err(e) => {
                         eprintln!("{e}");
-                        return;
+                        continue;
                     }
                 };
 
                 match file.write_all(input.as_bytes()) {
                     Ok(_) => {
-                        return;
+                        continue;
                     }
                     Err(e) => {
                         eprintln!("{e}");
+                        continue;
                     }
                 };
             }
@@ -66,7 +96,7 @@ pub fn cat(args: Vec<String>) {
                     Ok(file) => file,
                     Err(_) => {
                         eprintln!("cat: {}: No such file or directory", arg);
-                        return;
+                        continue;
                     }
                 };
                 let mut buf_reader = BufReader::new(file);
@@ -75,28 +105,32 @@ pub fn cat(args: Vec<String>) {
                     Ok(ok) => ok,
                     Err(e) => {
                         eprintln!("{e}");
-                        return;
+                        continue;
                     }
                 };
 
-                println!("{contents}");
+                println!("{}", &contents);
+                result.push_str(contents.as_str());
             }
         }
     }
+    return Some(result);
 }
 
-pub fn pwd() {
+pub fn pwd() -> Option<String> {
     match current_dir() {
         Ok(dir) => {
             println!("{}", dir.display());
+            return Some(String::from(dir.to_str().unwrap()));
         }
         Err(e) => {
             eprintln!("{e}");
+            return None;
         }
     }
 }
 
-pub fn mkdir(args: Vec<String>) {
+pub fn mkdir(args: Vec<String>) -> Option<String> {
     for arg in args {
         match fs::create_dir(arg) {
             Ok(create) => create,
@@ -106,9 +140,11 @@ pub fn mkdir(args: Vec<String>) {
         };
         break;
     }
+    return None;
 }
 
-pub fn grep(args: Vec<String>) {
+pub fn grep(args: Vec<String>) -> Option<String> {
+    // needs to restructure to handle mutiple files
     let mut path: String = String::new();
     let mut word: String = String::new();
     let mut flag: String = String::new();
@@ -126,7 +162,7 @@ pub fn grep(args: Vec<String>) {
             }
             _ if arg.starts_with('-') => {
                 eprintln!("Invalid flag. The valid ones are -i, -v,-n, -w, or -c.");
-                return;
+                return None;
             }
             _ => {
                 path = String::from(arg);
@@ -138,7 +174,7 @@ pub fn grep(args: Vec<String>) {
         Ok(file) => file,
         Err(e) => {
             eprintln!("{e}");
-            return;
+            return None;
         }
     };
     let mut buf_reader = BufReader::new(file);
@@ -147,7 +183,7 @@ pub fn grep(args: Vec<String>) {
         Ok(ok) => ok,
         Err(e) => {
             eprintln!("{e}");
-            return;
+            return None;
         }
     };
 
@@ -159,7 +195,7 @@ pub fn grep(args: Vec<String>) {
     match flag.as_str() {
         "-i" | "--ignore-case" => {
             println!("Not yet implemented.");
-            return;
+            return None;
         }
         "-v" | "--invert-match" => {
             let lines = contents.split("\n");
@@ -206,8 +242,9 @@ pub fn grep(args: Vec<String>) {
                 }
             }
 
-            println!("{count}");
-            return;
+            let output: String = count.to_string();
+            println!("{}", &output);
+            return Some(output);
         }
         _ => {
             let lines = contents.split("\n");
@@ -220,16 +257,18 @@ pub fn grep(args: Vec<String>) {
             }
         }
     }
-
-    for line in output {
-        println!("{line}");
+    let mut result: String = String::new();
+    for line in &output {
+        println!("{}", &line);
+        result.push_str(line);
     }
+    return Some(result);
 }
 
-pub fn used(args: Vec<String>) {
+pub fn used(args: Vec<String>) -> Option<String> {
     if args.len() != 1 {
         eprintln!("Invalid number of arguments");
-        return;
+        return None;
     }
     let path = &args[0];
     match File::open(path) {
@@ -240,26 +279,33 @@ pub fn used(args: Vec<String>) {
                 Ok(ok) => ok,
                 Err(e) => {
                     eprintln!("{}", e);
-                    return;
+                    return None;
                 }
             };
             let size_of_file = contents.len();
 
-            println!(
-                "Size of file is {} bytes ({} MB)",
-                size_of_file,
-                size_of_file as f64 / (1024 * 1024) as f64
-            );
+            let mut result: String = String::from("Size of fiel is ");
+            let aux = size_of_file as f64 / (1024 * 1024) as f64;
+            result.push_str(size_of_file.to_string().as_str());
+            result.push_str(" bytes (");
+            result.push_str(aux.to_string().as_str());
+            result.push_str(" MB)");
+
+            println!("{}", &result);
+
+            return Some(result);
         }
-        Err(_) => {}
+        Err(_) => {
+            return None;
+        }
     }
 }
 
-pub fn init() {
+pub fn init() -> Option<String> {
     let file = match File::open("hi_there") {
         Ok(file) => file,
         Err(_) => {
-            return;
+            return None;
         }
     };
 
@@ -269,7 +315,7 @@ pub fn init() {
         Ok(ok) => ok,
         Err(e) => {
             eprintln!("{}", e);
-            return;
+            return None;
         }
     };
 
@@ -285,11 +331,13 @@ pub fn init() {
         }
         None => {}
     };
+    return Some(contents);
 }
 
-pub fn hashkitten(args: Vec<String>) {
+pub fn hashkitten(args: Vec<String>) -> Option<String> {
     let mut args = args;
     args.push(String::from("hashkitten"));
     args.reverse();
     hashkitten::run(args);
+    return None;
 }

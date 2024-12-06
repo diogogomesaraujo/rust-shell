@@ -1,7 +1,7 @@
 use chrono::prelude::*;
 use std::env::current_dir;
 use std::io::Write;
-use std::process::{exit, Command};
+use std::process::exit;
 
 mod color;
 mod commands;
@@ -12,10 +12,12 @@ fn main() {
     commands::init();
     let prefix: String = color::red_text(String::from("diogo"));
     let mut commands: Vec<String> = Vec::new();
+    let mut _previous_command: Option<String> = None;
 
     loop {
         let current_dir = current_dir().unwrap();
         let time = Local::now().format("%H:%M%P");
+        let mut previous_output: Option<String> = None;
 
         println!(
             "[ {0} {1} ]: {2}",
@@ -29,61 +31,50 @@ fn main() {
 
         let input = custom_io::read_instance(&mut commands);
 
-        let mut parts = input.trim().split_whitespace();
-        let command = match parts.next() {
-            Some(command) => command,
-            None => {
-                continue;
-            }
-        };
-        let args = parts;
-        let args: Vec<String> = args.map(|s| s.to_string()).collect();
+        let mut commands_from_input = input.split(" | ").peekable();
 
-        match (command, &args) {
-            ("cd", _) => {
-                commands::cd(args);
-            }
-            ("clear", _) => {
-                commands::clear();
-            }
-            ("cat", _) => {
-                commands::cat(args);
-            }
-            ("pwd", _) => {
-                commands::pwd();
-            }
-            ("mkdir", _) => {
-                commands::mkdir(args);
-            }
-            ("grep", _) => {
-                commands::grep(args);
-            }
-            ("used", _) => {
-                commands::used(args);
-            }
-            ("hashkitten", _) => {
-                commands::hashkitten(args);
-            }
-            ("hi", _) => {
-                commands::init();
-            }
-            ("exit", _) => {
-                exit(0);
-            }
-            (_, _) => {
-                let child = Command::new(command).args(args).spawn();
-
-                match child {
-                    Ok(mut child) => {
-                        child.wait().unwrap();
-                    }
-                    Err(e) => {
-                        println!("{e}");
-                    }
+        while let Some(command_input) = commands_from_input.next() {
+            let mut parts = command_input.trim().split_whitespace();
+            let command = match parts.next() {
+                Some(command) => command,
+                None => {
+                    continue;
+                }
+            };
+            let args = parts;
+            let mut args: Vec<String> = args.map(|s| s.to_string()).collect();
+            if let Some(previous_output) = previous_output {
+                let previous_output_args: Vec<String> = previous_output
+                    .split_whitespace()
+                    .map(|s| s.to_string())
+                    .collect();
+                for arg in previous_output_args {
+                    args.push(arg);
                 }
             }
-        }
 
+            let output = match command {
+                "ls" => commands::ls(args),
+                "cd" => commands::cd(args),
+                "clear" => commands::clear(),
+                "cat" => commands::cat(args),
+                "pwd" => commands::pwd(),
+                "mkdir" => commands::mkdir(args),
+                "grep" => commands::grep(args),
+                "used" => commands::used(args),
+                "hashkitten" => commands::hashkitten(args),
+                "hi" => commands::init(),
+                "exit" => {
+                    exit(0);
+                }
+                _ => {
+                    eprintln!("No command found!");
+                    break;
+                }
+            };
+
+            previous_output = output;
+        }
         //println!("{:?}", commands);
     }
 }
