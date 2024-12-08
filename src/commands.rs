@@ -346,6 +346,13 @@ pub fn head(args: Vec<String>) -> Option<String> {
     match flag.as_str() {
         "-n" | "" => {
             for path in paths {
+                let mut header: String = String::from("==> ");
+                header.push_str(path.as_str());
+                header.push_str(" <==");
+                header = color::teal_text(header);
+                println!("{}", &header);
+                result.push_str(header.as_str());
+                result.push('\n');
                 match File::open(path) {
                     Ok(file) => {
                         let mut buf_reader = BufReader::new(file);
@@ -354,7 +361,7 @@ pub fn head(args: Vec<String>) -> Option<String> {
                             Ok(ok) => ok,
                             Err(e) => {
                                 eprintln!("{}", e);
-                                return None;
+                                continue;
                             }
                         };
 
@@ -376,6 +383,13 @@ pub fn head(args: Vec<String>) -> Option<String> {
         }
         "-c" => {
             for path in paths {
+                let mut header: String = String::from("==> ");
+                header.push_str(path.as_str());
+                header.push_str(" <==");
+                header = color::teal_text(header);
+                println!("{}", &header);
+                result.push_str(header.as_str());
+                result.push('\n');
                 match File::open(path) {
                     Ok(file) => {
                         let mut buf_reader = BufReader::new(file);
@@ -384,7 +398,7 @@ pub fn head(args: Vec<String>) -> Option<String> {
                             Ok(ok) => ok,
                             Err(e) => {
                                 eprintln!("{}", e);
-                                return None;
+                                continue;
                             }
                         };
 
@@ -401,6 +415,36 @@ pub fn head(args: Vec<String>) -> Option<String> {
                         }
                         println!();
                         result.push_str("\n");
+                    }
+                    Err(e) => {
+                        println!("{e}");
+                    }
+                }
+            }
+        }
+        "-v" => {
+            for path in paths {
+                match File::open(path) {
+                    Ok(file) => {
+                        let mut buf_reader = BufReader::new(file);
+                        let mut contents: String = String::new();
+                        match buf_reader.read_to_string(&mut contents) {
+                            Ok(ok) => ok,
+                            Err(e) => {
+                                eprintln!("{}", e);
+                                continue;
+                            }
+                        };
+
+                        let mut aux = 0;
+                        for line in contents.split('\n') {
+                            if aux == n {
+                                break;
+                            }
+                            println!("{}", &line);
+                            result.push_str(line);
+                            aux += 1;
+                        }
                     }
                     Err(e) => {
                         println!("{e}");
