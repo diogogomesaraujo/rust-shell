@@ -5,7 +5,7 @@ use std::env::current_dir;
 use std::io::{stdin, stdout, BufReader, Read, Write};
 use std::{env, fs, fs::File, path::Path};
 
-pub fn ls() -> Option<String> {
+pub fn ls(args: Vec<String>) -> Option<String> {
     let paths = match fs::read_dir("./") {
         Ok(paths) => paths,
         Err(e) => {
@@ -15,6 +15,23 @@ pub fn ls() -> Option<String> {
     };
 
     let mut result = String::new();
+
+    for arg in args {
+        // to implement
+        match arg.as_str() {
+            "-l" => {}
+            "-a" => {}
+            "-t" => {}
+            "-r" => {}
+            "-S" => {}
+            "-R" => {}
+            "-i" => {}
+            "-g" => {}
+            "-h" => {}
+            "-d" => {}
+            _ => {}
+        }
+    }
 
     for path in paths {
         if let Some(path) = path.unwrap().path().as_os_str().to_str() {
@@ -183,7 +200,7 @@ pub fn grep(args: Vec<String>) -> Option<String> {
         let mut contents: String = String::new();
         match buf_reader.read_to_string(&mut contents) {
             Ok(ok) => ok,
-            Err(e) => {
+            Err(_) => {
                 continue;
             }
         };
@@ -302,6 +319,99 @@ pub fn used(args: Vec<String>) -> Option<String> {
             return None;
         }
     }
+}
+
+pub fn head(args: Vec<String>) -> Option<String> {
+    let mut result: String = String::new();
+    let mut flag: String = String::new();
+    let mut paths: Vec<String> = Vec::new();
+    let mut n: u32 = 10;
+
+    for arg in args {
+        match arg.as_str() {
+            _ if arg.starts_with("-") => {
+                flag = arg;
+            }
+            _ => match arg.parse::<u32>() {
+                Ok(parsed_arg) => {
+                    n = parsed_arg;
+                }
+                Err(_) => {
+                    paths.push(arg);
+                }
+            },
+        }
+    }
+
+    match flag.as_str() {
+        "-n" | "" => {
+            for path in paths {
+                match File::open(path) {
+                    Ok(file) => {
+                        let mut buf_reader = BufReader::new(file);
+                        let mut contents: String = String::new();
+                        match buf_reader.read_to_string(&mut contents) {
+                            Ok(ok) => ok,
+                            Err(e) => {
+                                eprintln!("{}", e);
+                                return None;
+                            }
+                        };
+
+                        let mut aux = 0;
+                        for line in contents.split('\n') {
+                            if aux == n {
+                                break;
+                            }
+                            println!("{}", &line);
+                            result.push_str(line);
+                            aux += 1;
+                        }
+                    }
+                    Err(e) => {
+                        println!("{e}");
+                    }
+                }
+            }
+        }
+        "-c" => {
+            for path in paths {
+                match File::open(path) {
+                    Ok(file) => {
+                        let mut buf_reader = BufReader::new(file);
+                        let mut contents: String = String::new();
+                        match buf_reader.read_to_string(&mut contents) {
+                            Ok(ok) => ok,
+                            Err(e) => {
+                                eprintln!("{}", e);
+                                return None;
+                            }
+                        };
+
+                        let mut aux = 0;
+
+                        for ch in contents.chars() {
+                            if aux == n {
+                                break;
+                            }
+                            print!("{}", &ch);
+                            stdout().flush().unwrap();
+                            result.push(ch);
+                            aux += 1;
+                        }
+                        println!();
+                        result.push_str("\n");
+                    }
+                    Err(e) => {
+                        println!("{e}");
+                    }
+                }
+            }
+        }
+        _ => {}
+    }
+
+    return Some(result);
 }
 
 pub fn init() -> Option<String> {

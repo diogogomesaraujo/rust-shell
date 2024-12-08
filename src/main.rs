@@ -54,11 +54,12 @@ fn main() {
             }
 
             let output = match command {
-                "ls" => commands::ls(),
+                "ls" => commands::ls(args),
                 "cd" => commands::cd(args),
                 "clear" => commands::clear(),
                 "cat" => commands::cat(args),
                 "pwd" => commands::pwd(),
+                "head" => commands::head(args),
                 "mkdir" => commands::mkdir(args),
                 "grep" => commands::grep(args),
                 "used" => commands::used(args),
