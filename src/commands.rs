@@ -302,7 +302,7 @@ pub fn used(args: Vec<String>) -> Option<String> {
                     return None;
                 }
             };
-            let size_of_file = contents.len();
+            let size_of_file = contents.as_bytes().len();
 
             let mut result: String = String::from("Size of fiel is ");
             let aux = size_of_file as f64 / (1024 * 1024) as f64;
@@ -456,6 +456,70 @@ pub fn head(args: Vec<String>) -> Option<String> {
     }
 
     return Some(result);
+}
+
+pub fn wc(args: Vec<String>) -> Option<String> {
+    let mut flag: String = String::new();
+    let mut files: Vec<String> = Vec::new();
+    let mut result: String = String::new();
+
+    for arg in args {
+        match arg {
+            f if f.starts_with('-') => {
+                flag = f;
+            }
+            _ => {
+                files.push(arg);
+            }
+        }
+    }
+
+    for file in files {
+        match File::open(&file) {
+            Ok(f) => {
+                let mut buf_reader = BufReader::new(f);
+                let mut contents: String = String::new();
+                match buf_reader.read_to_string(&mut contents) {
+                    Ok(_) => {
+                        let lines = contents.split("\n").count();
+                        let words = contents.split_whitespace().count();
+                        let bytes = contents.as_bytes().len();
+
+                        match flag.as_str() {
+                            "-l" => {
+                                let line = format!("{} {}\n", lines, file);
+                                println!("{}", line.trim());
+                                result.push_str(line.as_str());
+                            }
+                            "-c" => {
+                                let line = format!("{} {}\n", bytes, file);
+                                println!("{}", line.trim());
+                                result.push_str(line.as_str());
+                            }
+                            "-w" => {
+                                let line = format!("{} {}\n", words, file);
+                                println!("{}", line.trim());
+                                result.push_str(line.as_str());
+                            }
+                            _ => {
+                                let line = format!("{} {} {} {}\n", lines, words, bytes, file);
+                                println!("{}", line.trim());
+                                result.push_str(line.as_str());
+                            }
+                        }
+                    }
+                    Err(e) => {
+                        eprintln!("{}", e);
+                    }
+                };
+            }
+            Err(e) => {
+                eprintln!("{e}");
+            }
+        }
+    }
+
+    Some(result)
 }
 
 pub fn init() -> Option<String> {

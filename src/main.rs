@@ -60,6 +60,7 @@ fn main() {
                 "cat" => commands::cat(args),
                 "pwd" => commands::pwd(),
                 "head" => commands::head(args),
+                "wc" => commands::wc(args),
                 "mkdir" => commands::mkdir(args),
                 "grep" => commands::grep(args),
                 "used" => commands::used(args),
