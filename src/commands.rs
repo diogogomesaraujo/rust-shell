@@ -75,6 +75,32 @@ pub fn clear() -> Option<String> {
     }
 }
 
+pub fn echo(args: Vec<String>) -> Option<String> {
+    if let Some(arg) = args.get(0) {
+        match arg.as_str() {
+            arg if arg.starts_with('-') => {
+                let flag = arg;
+                match flag {
+                    "-e" => {
+                        //to do!!!!
+                    }
+                    _ => {
+                        let message = args[1..].join(" ");
+                        println!("{}", message);
+                        return Some(message);
+                    }
+                }
+            }
+            _ => {
+                let message = args.join(" ");
+                println!("{}", message);
+                return Some(message);
+            }
+        }
+    }
+    None
+}
+
 pub fn cat(args: Vec<String>) -> Option<String> {
     let mut result: String = String::new();
     for arg in args {
@@ -285,13 +311,13 @@ pub fn grep(args: Vec<String>) -> Option<String> {
     return Some(result);
 }
 
-pub fn used(args: Vec<String>) -> Option<String> {
+pub fn du(args: Vec<String>) -> Option<String> {
     if args.len() != 1 {
         eprintln!("Invalid number of arguments");
         return None;
     }
     let path = &args[0];
-    match File::open(path) {
+    match File::open(&path) {
         Ok(file) => {
             let mut buf_reader = BufReader::new(file);
             let mut contents: String = String::new();
@@ -304,7 +330,7 @@ pub fn used(args: Vec<String>) -> Option<String> {
             };
             let size_of_file = contents.as_bytes().len();
 
-            let mut result: String = String::from("Size of fiel is ");
+            let mut result: String = String::from("Size of file is ");
             let aux = size_of_file as f64 / (1024 * 1024) as f64;
             result.push_str(size_of_file.to_string().as_str());
             result.push_str(" bytes (");
