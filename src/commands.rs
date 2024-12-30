@@ -76,25 +76,40 @@ pub fn clear() -> Option<String> {
 }
 
 pub fn echo(args: Vec<String>) -> Option<String> {
-    if let Some(arg) = args.get(0) {
-        match arg.as_str() {
-            arg if arg.starts_with('-') => {
-                let flag = arg;
-                match flag {
-                    "-e" => {
-                        //to do!!!!
-                    }
-                    _ => {
-                        let message = args[1..].join(" ");
-                        println!("{}", message);
-                        return Some(message);
+    if let Some(flag) = args.get(0) {
+        println!("{}", flag);
+        match flag.as_str() {
+            "-e" => {
+                if args[1].starts_with('"') && args[args.len() - 1].ends_with('"') {
+                    println!();
+                    let mut contents = String::new();
+                    for arg in args {
+                        match arg.as_str() {
+                            "\n" => {
+                                println!();
+                                contents.push('\n');
+                            }
+                            "\t" => {
+                                print!("    ");
+                                stdout().flush().unwrap();
+                                contents.push('\t');
+                            }
+                            _ => {
+                                let out = format!("{} ", arg);
+                                print!("{}", &out);
+                                stdout().flush().unwrap();
+                                contents.push_str(out.as_str());
+                            }
+                        }
                     }
                 }
             }
             _ => {
-                let message = args.join(" ");
-                println!("{}", message);
-                return Some(message);
+                if args[0].starts_with('"') && args[args.len() - 1].ends_with('"') {
+                    let contents = args.join(" ");
+                    println! {"{}", &contents};
+                    return Some(contents.to_string());
+                }
             }
         }
     }
@@ -243,7 +258,7 @@ pub fn grep(args: Vec<String>) -> Option<String> {
             }
             "-v" | "--invert-match" => {
                 let lines = contents.split("\n");
-                let aux = word.clone();
+                let aux = &word;
                 for line in lines {
                     if !line.contains(aux.as_str()) {
                         output.push(String::from(line));
@@ -252,7 +267,7 @@ pub fn grep(args: Vec<String>) -> Option<String> {
             }
             "-n" | "--line-number" => {
                 let lines = contents.split("\n");
-                let aux = word.clone();
+                let aux = &word;
                 let mut i = 1;
                 for line in lines {
                     if line.contains(aux.as_str()) {
@@ -266,7 +281,7 @@ pub fn grep(args: Vec<String>) -> Option<String> {
             }
             "-w" => {
                 let lines = contents.split("\n");
-                let aux = word.clone();
+                let aux = &word;
                 for line in lines {
                     for w in line.split_whitespace() {
                         if line.contains(aux.as_str()) && word == w {
@@ -279,7 +294,7 @@ pub fn grep(args: Vec<String>) -> Option<String> {
             "-c" => {
                 let mut count = 0;
                 let lines = contents.split("\n");
-                let aux = word.clone();
+                let aux = &word;
                 for line in lines {
                     if line.contains(aux.as_str()) {
                         count += 1;
@@ -292,7 +307,7 @@ pub fn grep(args: Vec<String>) -> Option<String> {
             }
             _ => {
                 let lines = contents.split("\n");
-                let aux = word.clone();
+                let aux = &word;
                 for line in lines {
                     if line.contains(aux.as_str()) {
                         let new_line = highlight_word(&word, String::from(line));
