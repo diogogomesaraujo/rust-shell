@@ -603,3 +603,74 @@ pub fn hashkitten(args: Vec<String>) -> Option<String> {
     hashkitten::run(args);
     return None;
 }
+
+pub fn cp(args: Vec<String>) -> Option<String> {
+    if args.len() < 2 {
+        eprintln!("not enough arguments!");
+        return None;
+    }
+    let copied_files: &Vec<String> = &args[..(args.len() - 1)].to_vec();
+    let destiny_directory = &args[args.len() - 1];
+
+    for file_path in copied_files {
+        match File::open(file_path) {
+            Ok(file) => {
+                let mut buf_reader = BufReader::new(file);
+                let mut contents: String = String::new();
+                match buf_reader.read_to_string(&mut contents) {
+                    Ok(ok) => ok,
+                    Err(e) => {
+                        eprintln!("{}", e);
+                        return None;
+                    }
+                };
+                match fs::read_dir(destiny_directory) {
+                    Ok(_) => {
+                        let file_path = match file_path.split('/').rev().next() {
+                            Some(path) => path,
+                            None => file_path,
+                        };
+                        let file_path = format!("{}/{}", destiny_directory, file_path);
+
+                        match File::create(file_path) {
+                            Ok(mut file) => match File::write(&mut file, contents.as_bytes()) {
+                                Ok(_) => (),
+                                Err(e) => {
+                                    eprintln!("{e}");
+                                    return None;
+                                }
+                            },
+                            Err(e) => {
+                                eprintln!("{e}");
+                                return None;
+                            }
+                        }
+                    }
+                    Err(_) => {
+                        fs::create_dir(destiny_directory).expect("Should not happen!");
+
+                        let file_path = format!("{}/{}", destiny_directory, "placeholder");
+
+                        match File::create(file_path) {
+                            Ok(mut file) => match File::write(&mut file, contents.as_bytes()) {
+                                Ok(_) => (),
+                                Err(e) => {
+                                    eprintln!("{e}");
+                                    return None;
+                                }
+                            },
+                            Err(e) => {
+                                eprintln!("{e}");
+                                return None;
+                            }
+                        };
+                    }
+                };
+            }
+            Err(e) => {
+                eprintln!("{e}");
+            }
+        }
+    }
+    None
+}

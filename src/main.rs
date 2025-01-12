@@ -67,6 +67,7 @@ fn main() {
                 "du" => commands::du(args),
                 "hashkitten" => commands::hashkitten(args),
                 "hi" => commands::init(),
+                "cp" => commands::cp(args),
                 "exit" => {
                     exit(0);
                 }
