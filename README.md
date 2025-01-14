@@ -14,23 +14,7 @@ This is a small project I made to deepen my understanding of Rust and Shells.
 
 These are the commands I have implemented
 
-`ls`
-
-`cd`
-
-`clear`
-
-`cat`
-
-`pwd`
-
-`head`
-
-`wc`
-
-`mkdir`
-
-`grep`
+`ls` `cd` `clear` `echo` `cat` `pwd` `head` `wc` `mkdir` `grep` `du` `cp`
 
 `hashkitten` (Custom SHA-256 Implementation)
 
