@@ -1,7 +1,7 @@
 
 # rust-shell
 
-This is a small project I made to deepen my understanding of Threads Pipes and the differences between C and Rust.
+This is a small project I made to deepen my understanding of Rust and Shells.
 ## Demo
 
 ## Features
@@ -9,6 +9,7 @@ This is a small project I made to deepen my understanding of Threads Pipes and t
 - Custom input reading, history and cursor movement.
 - Piped Commands.
 - Aesthetic Outputs.
+
 ## Commands
 
 These are the commands I have implemented
