@@ -2,7 +2,6 @@
 
 use crate::color;
 use std::env::current_dir;
-use std::fmt::format;
 use std::io::{stdin, stdout, BufReader, Read, Write};
 use std::{env, fs, fs::File, path::Path};
 
@@ -649,13 +648,13 @@ pub fn cp(args: Vec<String>) -> Option<String> {
                     }
                     Err(_) => {
                         let mut aux_dir = String::new();
+
                         for dir in destiny_directory.split('/') {
                             aux_dir = match aux_dir.as_str() {
                                 "" => format!("{}{}", aux_dir, dir),
                                 _ => format!("{}/{}", aux_dir, dir),
                             };
 
-                            println!("{}", aux_dir);
                             fs::create_dir(aux_dir.clone()).expect("should not happen");
                         }
 
