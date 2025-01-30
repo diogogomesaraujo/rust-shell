@@ -54,7 +54,7 @@ fn main() {
             }
 
             let output = match command {
-                "ls" => commands::ls(args),
+                "ls" => commands::ls(),
                 "cd" => commands::cd(args),
                 "clear" => commands::clear(),
                 "echo" => commands::echo(args),

@@ -5,7 +5,7 @@ use std::env::current_dir;
 use std::io::{stdin, stdout, BufReader, Read, Write};
 use std::{env, fs, fs::File, path::Path};
 
-pub fn ls(args: Vec<String>) -> Option<String> {
+pub fn ls(/*args: Vec<String>*/) -> Option<String> {
     let paths = match fs::read_dir("./") {
         Ok(paths) => paths,
         Err(e) => {
@@ -16,7 +16,7 @@ pub fn ls(args: Vec<String>) -> Option<String> {
 
     let mut result = String::new();
 
-    for arg in args {
+    /* for arg in args {
         // to implement
         match arg.as_str() {
             "-l" => {}
@@ -31,7 +31,7 @@ pub fn ls(args: Vec<String>) -> Option<String> {
             "-d" => {}
             _ => {}
         }
-    }
+    } */
 
     for path in paths {
         if let Some(path) = path.unwrap().path().as_os_str().to_str() {
@@ -65,7 +65,6 @@ pub fn clear() -> Option<String> {
             for _i in 0..h {
                 println!();
             }
-
             return None;
         }
         None => {
@@ -651,7 +650,7 @@ pub fn cp(args: Vec<String>) -> Option<String> {
 
                         for dir in destiny_directory.split('/') {
                             aux_dir = match aux_dir.as_str() {
-                                "" => format!("{}{}", aux_dir, dir),
+                                "" => dir.to_string(),
                                 _ => format!("{}/{}", aux_dir, dir),
                             };
 
