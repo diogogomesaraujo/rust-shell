@@ -2,7 +2,6 @@
 # rust-shell
 
 This is a small project I made to deepen my understanding of Rust and Shells.
-## Demo
 
 ## Features
 
@@ -26,3 +25,5 @@ To deploy this project run
   cargo run
 ```
 
+## Demo
+![image](demo.png)
